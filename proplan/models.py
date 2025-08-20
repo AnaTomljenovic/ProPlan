@@ -1,30 +1,8 @@
 from datetime import datetime
-from enum import Enum
 
 from pydantic import BaseModel
 
-
-class Availability(str, Enum):
-    FREE = "Free"
-    BUSY = "Busy"
-
-
-class Role(str, Enum):
-    ADMIN = "Admin"
-    MANAGER = "Manager"
-    WORKER = "Worker"
-
-
-class ProjectStatus(str, Enum):
-    STARTED = "Started"
-    ONGOING = "Ongoing"
-    FINISHED = "Finished"
-
-
-class TaskStatus(str, Enum):
-    OPEN = "Open"
-    IN_PROGRESS = "In Progress"
-    DONE = "Done"
+from proplan.enums import Role, Availability, ProjectStatus, TaskStatus
 
 
 class User(BaseModel):
@@ -41,7 +19,7 @@ class Project(BaseModel):
     name: str
     description: str
     start_time: datetime = datetime.utcnow
-    end_time: datetime | None
+    end_time: datetime | None = None
     status: ProjectStatus = ProjectStatus.STARTED
 
 
@@ -49,6 +27,6 @@ class Task(BaseModel):
     id: int
     name: str
     start_time: datetime = datetime.utcnow
-    end_time: datetime | None
+    end_time: datetime | None = None
     status: TaskStatus = TaskStatus.OPEN
-    details: str | None
+    details: str | None = None
