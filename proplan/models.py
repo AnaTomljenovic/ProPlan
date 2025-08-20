@@ -21,6 +21,12 @@ class ProjectStatus(str, Enum):
     FINISHED = "Finished"
 
 
+class TaskStatus(str, Enum):
+    OPEN = "Open"
+    IN_PROGRESS = "In Progress"
+    DONE = "Done"
+
+
 class User(BaseModel):
     id: int
     name: str
@@ -37,3 +43,12 @@ class Project(BaseModel):
     start_time: datetime = datetime.utcnow
     end_time: datetime | None
     status: ProjectStatus = ProjectStatus.STARTED
+
+
+class Task(BaseModel):
+    id: int
+    name: str
+    start_time: datetime = datetime.utcnow
+    end_time: datetime | None
+    status: TaskStatus = TaskStatus.OPEN
+    details: str | None
