@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, EmailStr, ConfigDict
 from .models import Role, Availability
 
@@ -15,3 +16,9 @@ class UserCreate(BaseModel):
     password: str
     availability: Availability = Availability.FREE
     role: Role = Role.WORKER
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    availability: Optional[Availability] = None
+    role: Optional[Role] = None
+    password: Optional[str] = None

@@ -1,12 +1,9 @@
-from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException
 
 from proplan.enums import Availability, Role
 from proplan.utils.users_dependency import get_password_hash
-from ..database import get_session
 from ..config import JWT_SECRET, JWT_ALGORITHM
 from ..models import User
 
@@ -39,22 +36,21 @@ class UserManager:
         await session.refresh(user)
         return user
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
+    async def update(self, session: AsyncSession, user_id: int, requester_role: Role, **fields) -> User:
+        user = await self.get(session, user_id)
+        if requester_role == Role.MANAGER and fields.get("role") and fields.get("role") != user.role:
+            raise HTTPException(403, "Managers cannot change roles")
+        if "password" in fields and fields["password"] is not None:
+            user.password_hash = get_password_hash(fields.pop("password"))
+        for k, v in list(fields.items()):
+            if v is not None and hasattr(user, k):
+                setattr(user, k, v)
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+        return user
 
-async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)) -> User:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        user_id: int | None = payload.get("user_id")
-        if user_id is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    user = await session.get(User, user_id)
-    if user is None:
-        raise credentials_exception
-    return user
+    async def delete(self, session: AsyncSession, user_id: int) -> None:
+        user = await self.get(session, user_id)
+        await session.delete(user)
+        await session.commit()
