@@ -33,3 +33,23 @@ async def get_user(
 ):
     _ensure_can_view(user, user_id)
     return await manager.get(session, user_id)
+
+@router.post("/", response_model=UserOut)
+async def create_user(
+    payload: UserCreate,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    # Admin can create anyone; Manager can only create Worker → enforced in service too
+    if current_user.role not in (Role.ADMIN, Role.MANAGER):
+        raise HTTPException(status_code=403, detail="Not allowed")
+    user = await manager.create(
+        session=session,
+        name=payload.name,
+        email=payload.email,
+        password=payload.password,
+        availability=payload.availability,
+        role=payload.role,
+        requester_role=current_user.role,
+    )
+    return user

@@ -21,6 +21,24 @@ class UserManager:
             raise HTTPException(404, "User not found")
         return user
 
+    async def create(
+        self, session: AsyncSession, name: str, email: str, password: str,
+        availability: Availability, role: Role, requester_role: Role
+    ) -> User:
+        if requester_role == Role.MANAGER and role != Role.WORKER:
+            raise HTTPException(403, "Managers may only create Worker accounts")
+        exists = await session.exec(select(User).where(User.email == email))
+        if exists.first():
+            raise HTTPException(400, "Email already registered")
+        user = User(
+            name=name, email=email, password_hash=get_password_hash(password),
+            availability=availability, role=role
+        )
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+        return user
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)) -> User:
