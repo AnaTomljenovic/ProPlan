@@ -1,5 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, EmailStr, ConfigDict
+
+from proplan.enums import ProjectStatus
 from .models import Role, Availability
 
 class UserOut(BaseModel):
@@ -22,3 +24,16 @@ class UserUpdate(BaseModel):
     availability: Optional[Availability] = None
     role: Optional[Role] = None
     password: Optional[str] = None
+
+class ProjectCreate(BaseModel):
+    name: str
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    description: Optional[str] = None
+
+class ProjectUpdate(BaseModel):
+    name: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[ProjectStatus] = None
