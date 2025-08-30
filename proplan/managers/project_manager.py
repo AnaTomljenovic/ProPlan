@@ -3,9 +3,13 @@ from fastapi import HTTPException
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from proplan.enums import ProjectStatus, Role
+from proplan.managers.notification_manager import NotificationManager
 from proplan.models import Project, ProjectWorkerLink, User
 
 class ProjectManager:
+    def __init__(self, notifier: NotificationManager):
+        self.notify = notifier
+
     async def list(self, session: AsyncSession, user: User):
         if user.role == Role.WORKER:
             raise HTTPException(status_code=403, detail="Workers cannot access projects")
@@ -84,6 +88,12 @@ class ProjectManager:
             session.add(ProjectWorkerLink(project_id=project.id, user_id=manager.id))
             await session.commit()
 
+        await self.notify.send_email(
+            manager.email,
+            f"You are manager of project '{project.name}'",
+            f"Hello {manager.name},\n\nYou have been assigned as manager of project '{project.name}'.",
+        )
+
     async def remove_manager(self, session: AsyncSession, project_id: int) -> None:
         p = await session.get(Project, project_id)
         if not p:
@@ -117,6 +127,11 @@ class ProjectManager:
         session.add(ProjectWorkerLink(project_id=p.id, user_id=w.id))
         await session.commit()
 
+        await self.notify.send_email(
+            w.email,
+            f"Added to project '{p.name}'",
+            f"Hello {w.name},\n\nYou have been added to project '{p.name}'.",
+        )
         return {"ok": True, "note": "Worker assigned to project"}
 
     async def remove_worker(self, session: AsyncSession, project_id: int, worker_id: int, requester: User):
