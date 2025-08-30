@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from sqlmodel import SQLModel, Field, Relationship, Column, String
 
@@ -9,18 +9,18 @@ from proplan.enums import Role, Availability, ProjectStatus, TaskStatus
 
 class ProjectWorkerLink(SQLModel, table=True):
     __tablename__ = "project_workers"
-    project_id: int | None = Field(default=None, foreign_key="project.id", primary_key=True)
-    user_id: int | None = Field(default=None, foreign_key="user.id", primary_key=True)
+    project_id: Optional[int] = Field(default=None, foreign_key="project.id", primary_key=True)
+    user_id: Optional[int] = Field(default=None, foreign_key="user.id", primary_key=True)
 
 
 class TaskWorkerLink(SQLModel, table=True):
     __tablename__ = "task_workers"
-    task_id: int | None = Field(default=None, foreign_key="task.id", primary_key=True)
-    user_id: int | None = Field(default=None, foreign_key="user.id", primary_key=True)
+    task_id: Optional[int] = Field(default=None, foreign_key="task.id", primary_key=True)
+    user_id: Optional[int] = Field(default=None, foreign_key="user.id", primary_key=True)
 
 
 class User(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     email: str = Field(sa_column=Column(String, unique=True, index=True, nullable=False))
     password_hash: str = Field(exclude=True)
@@ -32,28 +32,28 @@ class User(SQLModel, table=True):
 
 
 class Project(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     start_time: datetime = Field(default_factory=datetime.utcnow)
     end_time: datetime | None = None
     description: str | None = None
     status: ProjectStatus = Field(default=ProjectStatus.STARTED)
 
-    manager_id: int | None = Field(default=None, foreign_key="user.id")
+    manager_id: Optional[int] = Field(default=None, foreign_key="user.id")
 
     workers: List[User] = Relationship(back_populates="projects", link_model=ProjectWorkerLink)
     tasks: List["Task"] = Relationship(back_populates="project")
 
 
 class Task(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     start_time: datetime = Field(default_factory=datetime.utcnow)
-    end_time: datetime | None = None
+    end_time: Optional[datetime] = None
     status: TaskStatus = Field(default=TaskStatus.OPEN)
-    details: str | None = None
+    details: Optional[str] = None
 
     project_id: int = Field(foreign_key="project.id")
-    project: Project | None = Relationship(back_populates="tasks")
+    project: Optional["Project"] = Relationship(back_populates="tasks")
 
     workers: List["User"] = Relationship(back_populates="tasks", link_model=TaskWorkerLink)
