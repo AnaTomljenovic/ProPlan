@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from proplan.enums import ProjectStatus, Role
-from proplan.models import Project, User
+from proplan.models import Project, ProjectWorkerLink, User
 
 class ProjectManager:
     async def list(self, session: AsyncSession, user: User):
@@ -60,3 +60,83 @@ class ProjectManager:
             raise HTTPException(status_code=404, detail="Project not found")
         await session.delete(p)
         await session.commit()
+
+    async def assign_manager(self, session: AsyncSession, project_id: int, manager_id: int) -> None:
+        project = await session.get(Project, project_id)
+        manager = await session.get(User, manager_id)
+        if not project or not manager:
+            raise HTTPException(status_code=404, detail="Project or Manager not found")
+        if manager.role != Role.MANAGER:
+            raise HTTPException(status_code=400, detail="User is not a Manager")
+
+        project.manager_id = manager.id
+        session.add(project)
+        await session.commit()
+
+        # Ensure manager is a project member (via link table)
+        existing = await session.exec(
+            select(ProjectWorkerLink).where(
+                ProjectWorkerLink.project_id == project.id,
+                ProjectWorkerLink.user_id == manager.id,
+            )
+        )
+        if not existing.first():
+            session.add(ProjectWorkerLink(project_id=project.id, user_id=manager.id))
+            await session.commit()
+
+    async def remove_manager(self, session: AsyncSession, project_id: int) -> None:
+        p = await session.get(Project, project_id)
+        if not p:
+            raise HTTPException(status_code=404, detail="Project not found")
+        if p.status == ProjectStatus.ONGOING:
+            raise HTTPException(status_code=400, detail="Cannot remove Manager while Project is Ongoing")
+        p.manager_id = None
+        session.add(p)
+        await session.commit()
+
+    async def add_worker(self, session: AsyncSession, project_id: int, worker_id: int, requester: User):
+        if requester.role not in (Role.ADMIN, Role.MANAGER):
+            raise HTTPException(status_code=403, detail="Not allowed")
+
+        p = await session.get(Project, project_id)
+        w = await session.get(User, worker_id)
+        if not p or not w:
+            raise HTTPException(status_code=404, detail="Project or Worker not found")
+        if w.role != Role.WORKER:
+            raise HTTPException(status_code=400, detail="Only users with role Worker can be added to a project")
+
+        existing = await session.exec(
+            select(ProjectWorkerLink).where(
+                ProjectWorkerLink.project_id == p.id,
+                ProjectWorkerLink.user_id == w.id,
+            )
+        )
+        if existing.first():
+            return {"ok": True, "note": "Worker already in project"}
+
+        session.add(ProjectWorkerLink(project_id=p.id, user_id=w.id))
+        await session.commit()
+
+        return {"ok": True, "note": "Worker assigned to project"}
+
+    async def remove_worker(self, session: AsyncSession, project_id: int, worker_id: int, requester: User):
+        if requester.role not in (Role.ADMIN, Role.MANAGER):
+            raise HTTPException(status_code=403, detail="Not allowed")
+
+        p = await session.get(Project, project_id)
+        if not p:
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        link_q = await session.exec(
+            select(ProjectWorkerLink).where(
+                ProjectWorkerLink.project_id == project_id,
+                ProjectWorkerLink.user_id == worker_id,
+            )
+        )
+        link = link_q.first()
+        if not link:
+            return {"ok": True, "note": "Worker not in project"}
+
+        await session.delete(link)
+        await session.commit()
+        return {"ok": True, "note": "Worker removed from Project succesfully"}
