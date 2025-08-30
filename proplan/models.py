@@ -35,8 +35,8 @@ class Project(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     start_time: datetime = Field(default_factory=datetime.utcnow)
-    end_time: datetime | None = None
-    description: str | None = None
+    end_time: Optional[datetime] = None
+    description: Optional[str] = None
     status: ProjectStatus = Field(default=ProjectStatus.STARTED)
 
     manager_id: Optional[int] = Field(default=None, foreign_key="user.id")
