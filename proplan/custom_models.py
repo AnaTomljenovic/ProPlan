@@ -4,6 +4,10 @@ from pydantic import BaseModel, EmailStr, ConfigDict
 from proplan.enums import ProjectStatus
 from .models import Role, Availability
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
 class UserOut(BaseModel):
     id: int
     name: str
