@@ -1,7 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, EmailStr, ConfigDict
 
-from proplan.enums import ProjectStatus
+from proplan.enums import ProjectStatus, TaskStatus
 from .models import Role, Availability
 
 class Token(BaseModel):
@@ -41,3 +41,17 @@ class ProjectUpdate(BaseModel):
     end_time: Optional[str] = None
     description: Optional[str] = None
     status: Optional[ProjectStatus] = None
+
+class TaskCreate(BaseModel):
+    name: str
+    project_id: int
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    details: Optional[str] = None
+
+class TaskUpdate(BaseModel):
+    name: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    status: Optional[TaskStatus] = None
+    details: Optional[str] = None
