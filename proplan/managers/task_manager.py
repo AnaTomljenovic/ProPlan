@@ -3,12 +3,12 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..models import (
-    Task, Project, User, TaskStatus, Role,
+    ProjectWorkerLink, Task, Project, User, TaskStatus, Role,
     TaskWorkerLink,
 )
 from .notification_manager import NotificationManager
 
-class TaskService:
+class TaskManager:
     def __init__(self, notifier: NotificationManager):
         self.notify = notifier
 
@@ -91,3 +91,61 @@ class TaskService:
             raise HTTPException(404, "Task not found")
         await session.delete(t)
         await session.commit()
+    
+    async def assign_worker(self, session: AsyncSession, task_id: int, worker_id: int):
+        t = await session.get(Task, task_id)
+        w = await session.get(User, worker_id)
+        if not t or not w:
+            raise HTTPException(404, "Task or Worker not found")
+
+        # worker must be part of the project first → check ProjectWorkerLink
+        proj_member = await session.exec(
+            select(ProjectWorkerLink).where(
+                ProjectWorkerLink.project_id == t.project_id,
+                ProjectWorkerLink.user_id == w.id,
+            )
+        )
+        if not proj_member.first():
+            raise HTTPException(400, "Worker must be part of the Project first")
+
+        # enforce constraints (one task & not on leave)
+        await self._ensure_worker_available(session, w)
+
+        # already assigned?
+        existing = await session.exec(
+            select(TaskWorkerLink).where(
+                TaskWorkerLink.task_id == t.id,
+                TaskWorkerLink.user_id == w.id,
+            )
+        )
+        if existing.first():
+            return {"ok": True, "note": "Already assigned"}
+
+        session.add(TaskWorkerLink(task_id=t.id, user_id=w.id))
+        await session.commit()
+
+        await self.notify.send_email(
+            w.email,
+            f"You were assigned to task '{t.name}'",
+            f"Hello {w.name},\n\nYou have been assigned to task '{t.name}' in project ID {t.project_id}.",
+        )
+        return {"ok": True}
+
+    async def remove_worker(self, session: AsyncSession, task_id: int, worker_id: int):
+        link_q = await session.exec(
+            select(TaskWorkerLink).where(
+                TaskWorkerLink.task_id == task_id,
+                TaskWorkerLink.user_id == worker_id,
+            )
+        )
+        link = link_q.first()
+        if link:
+            await session.delete(link)
+            await session.commit()
+        return {"ok": True}
+
+    async def reassign_worker(self, session: AsyncSession, task_id: int, old_worker_id: int, new_worker_id: int):
+        # remove old
+        await self.remove_worker(session, task_id, old_worker_id)
+        # add new (validations included)
+        return await self.assign_worker(session, task_id, new_worker_id)
