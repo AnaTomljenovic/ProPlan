@@ -40,3 +40,14 @@ class ReportManager:
             "count": len(tasks),
             "tasks": [{"id": t.id, "name": t.name, "status": t.status.value, "start_time": t.start_time.isoformat() if t.start_time else ""} for t in tasks],
         }
+
+    async def csv_rows(self, session: AsyncSession, project_id: int, year: int, month: int) -> list[list[str]]:
+        start_dt, end_dt = self._validate_month(year, month)
+        result = await session.exec(
+            select(Task).where(Task.project_id == project_id, Task.start_time >= start_dt, Task.start_time < end_dt)
+        )
+        tasks = result.all()
+        rows = [["id", "name", "status", "start_time"]]
+        for t in tasks:
+            rows.append([str(t.id), t.name, t.status.value, t.start_time.isoformat() if t.start_time else ""])
+        return rows
