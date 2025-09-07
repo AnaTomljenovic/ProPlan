@@ -1,7 +1,8 @@
+from datetime import date
 from typing import Optional
 from pydantic import BaseModel, EmailStr, ConfigDict
 
-from proplan.enums import ProjectStatus, TaskStatus
+from proplan.enums import DayOffType, ProjectStatus, TaskStatus
 from .models import Role, Availability
 
 class Token(BaseModel):
@@ -55,3 +56,16 @@ class TaskUpdate(BaseModel):
     end_time: Optional[str] = None
     status: Optional[TaskStatus] = None
     details: Optional[str] = None
+
+class DayOffCreate(BaseModel):
+    type: DayOffType
+    start_date: date
+    end_date: date
+
+class DayOffOut(BaseModel):
+    id: int
+    user_id: int
+    type: DayOffType
+    start_date: date
+    end_date: date
+    model_config = ConfigDict(from_attributes=True)
