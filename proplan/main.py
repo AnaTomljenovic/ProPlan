@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from proplan.endpoints import auth, projects, reports, tasks, users
+from proplan.endpoints import auth, daysoff, projects, reports, tasks, users
 
 app = FastAPI(title="ProPlan (Project Planning)")
 
@@ -13,6 +13,7 @@ app.include_router(auth.router)
 app.include_router(projects.router)
 app.include_router(tasks.router)
 app.include_router(reports.router)
+app.include_router(daysoff.router)
 
 def run():
     import uvicorn
