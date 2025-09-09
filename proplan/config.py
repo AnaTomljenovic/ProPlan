@@ -9,3 +9,4 @@ SMTP_USER = os.getenv("SMTP_USER") or ""
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD") or ""
 SMTP_TLS = os.getenv("SMTP_TLS", "true").lower() == "true"
 MAIL_FROM = os.getenv("MAIL_FROM", "proplan@example.com")
+DAILY_REMINDER_HOUR = int(os.getenv("DAILY_REMINDER_HOUR", "6"))
