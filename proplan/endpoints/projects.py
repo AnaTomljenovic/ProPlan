@@ -3,6 +3,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from proplan.custom_models import ProjectCreate, ProjectUpdate
 from proplan.enums import Role
+from proplan.managers.notification_manager import NotificationManager
 
 from ..database import get_session
 from ..models import User
@@ -10,7 +11,7 @@ from ..managers.project_manager import ProjectManager
 from ..utils.users_dependency import get_current_user
 
 router = APIRouter(prefix="/projects", tags=["projects"])
-project_manager = ProjectManager()
+project_manager = ProjectManager(NotificationManager())
 
 @router.get("/")
 async def list_projects(session: AsyncSession = Depends(get_session), user: User = Depends(get_current_user)):

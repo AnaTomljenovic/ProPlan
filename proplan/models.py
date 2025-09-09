@@ -21,8 +21,11 @@ class User(SQLModel, table=True):
     availability: Availability = Field(default=Availability.FREE)
     role: Role = Field(default=Role.WORKER)
 
+    managed_projects: List["Project"] = Relationship(back_populates="manager")
     projects: List["Project"] = Relationship(back_populates="workers", link_model=ProjectWorkerLink)
     tasks: List["Task"] = Relationship(back_populates="workers", link_model=TaskWorkerLink)
+
+    days_off: List["UserDayOff"] = Relationship(back_populates="user")
 
 class Project(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -33,6 +36,7 @@ class Project(SQLModel, table=True):
     status: ProjectStatus = Field(default=ProjectStatus.STARTED)
 
     manager_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    manager: Optional["User"] = Relationship(back_populates="managed_projects")
 
     workers: List[User] = Relationship(back_populates="projects", link_model=ProjectWorkerLink)
     tasks: List["Task"] = Relationship(back_populates="project")
@@ -52,7 +56,7 @@ class Task(SQLModel, table=True):
 
 class UserDayOff(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True, index=True)
-    user_id: int = Field(foreign_key="users.id")
+    user_id: int = Field(foreign_key="user.id")
     type: DayOffType
     start_date: date
     end_date: date

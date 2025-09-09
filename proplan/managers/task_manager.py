@@ -1,10 +1,11 @@
+from datetime import date
 from fastapi import HTTPException
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ..models import (
     ProjectWorkerLink, Task, Project, User, TaskStatus, Role,
-    TaskWorkerLink,
+    TaskWorkerLink, UserDayOff,
 )
 from .notification_manager import NotificationManager
 
@@ -19,6 +20,18 @@ class TaskManager:
         )
         if existing_task_link.first():
             raise HTTPException(400, "Worker is already assigned to another task")
+
+        # not on leave today
+        today = date.today()
+        on_leave = await session.exec(
+            select(UserDayOff).where(
+                UserDayOff.user_id == worker.id,
+                UserDayOff.start_date <= today,
+                UserDayOff.end_date >= today,
+            )
+        )
+        if on_leave.first():
+            raise HTTPException(400, "Worker is currently on leave and cannot be assigned")
 
     async def list(self, session: AsyncSession, requester: User):
         if requester.role == Role.WORKER:
