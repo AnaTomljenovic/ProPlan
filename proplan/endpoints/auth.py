@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel.ext.asyncio.session import AsyncSession
-from ..database import get_session
-from ..custom_models import Token
-from ..managers.auth_manager import AuthManager
+
+from proplan.custom_models import Token
+from proplan.database import get_session
+from proplan.managers.auth_manager import AuthManager
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 auth_manager = AuthManager()

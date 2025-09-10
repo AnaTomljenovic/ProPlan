@@ -3,9 +3,9 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from fastapi import HTTPException
 
 from proplan.enums import Availability, Role
+from proplan.models import User
 from proplan.utils.users_dependency import get_password_hash
-from ..config import JWT_SECRET, JWT_ALGORITHM
-from ..models import User
+
 
 class UserManager:
     async def list(self, session: AsyncSession) -> list[User]:

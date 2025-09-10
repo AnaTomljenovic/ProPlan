@@ -1,13 +1,14 @@
 from datetime import date
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from proplan.config import DAILY_REMINDER_HOUR
+from proplan.database import async_session_factory
 from proplan.managers.dayoff_manager import DayOffManager
 from proplan.managers.notification_manager import NotificationManager
-from ..database import async_session_factory
-from ..config import DAILY_REMINDER_HOUR
 
-from ..models import User, Project
 from sqlmodel import select
+
+from proplan.models import Project, User
 
 class SchedulerManager:
     def __init__(self, notifier: NotificationManager, dayoff: DayOffManager):

@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from ..database import get_session
-from ..models import User, Role
-from ..custom_models import UserCreate, UserOut, UserUpdate
-from ..managers.user_manager import UserManager
-from ..utils.users_dependency import get_current_user
+from proplan.custom_models import UserCreate, UserOut, UserUpdate
+from proplan.database import get_session
+from proplan.enums import Role
+from proplan.managers.user_manager import UserManager
+from proplan.models import User
+from proplan.utils.users_dependency import get_current_user
+
+
 
 router = APIRouter(prefix="/users", tags=["users"])
 manager = UserManager()

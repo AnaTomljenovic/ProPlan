@@ -2,13 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from proplan.custom_models import ProjectCreate, ProjectUpdate
+from proplan.database import get_session
 from proplan.enums import Role
 from proplan.managers.notification_manager import NotificationManager
-
-from ..database import get_session
-from ..models import User
-from ..managers.project_manager import ProjectManager
-from ..utils.users_dependency import get_current_user
+from proplan.managers.project_manager import ProjectManager
+from proplan.models import User
+from proplan.utils.users_dependency import get_current_user
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 project_manager = ProjectManager(NotificationManager())

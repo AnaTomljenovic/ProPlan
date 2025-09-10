@@ -4,9 +4,10 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from sqlmodel.ext.asyncio.session import AsyncSession
-from ..database import get_session
-from ..config import ACCESS_TOKEN_EXPIRE_MINUTES, JWT_SECRET, JWT_ALGORITHM
-from ..models import User
+
+from proplan.config import ACCESS_TOKEN_EXPIRE_MINUTES, JWT_ALGORITHM, JWT_SECRET
+from proplan.database import get_session
+from proplan.models import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 

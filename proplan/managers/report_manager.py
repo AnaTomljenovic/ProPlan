@@ -1,8 +1,10 @@
+from asyncio import Task
 from datetime import date, datetime
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from fastapi import HTTPException
-from ..models import Project, Task
+
+from proplan.models import Project
 
 class ReportManager:
     def _validate_month(self, year: int, month: int) -> tuple[datetime, datetime]:

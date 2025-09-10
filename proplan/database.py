@@ -3,7 +3,8 @@ from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
 from sqlalchemy.orm import sessionmaker
-from .config import DATABASE_URL
+
+from proplan.config import DATABASE_URL
 
 engine: AsyncEngine = create_async_engine(DATABASE_URL, echo=False, future=True)
 async_session_factory = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)

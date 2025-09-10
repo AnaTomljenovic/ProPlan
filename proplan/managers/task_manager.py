@@ -1,13 +1,13 @@
+from asyncio import Task
 from datetime import date
 from fastapi import HTTPException
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from ..models import (
-    ProjectWorkerLink, Task, Project, User, TaskStatus, Role,
-    TaskWorkerLink, UserDayOff,
-)
-from .notification_manager import NotificationManager
+from proplan.enums import Role, TaskStatus
+from proplan.managers.notification_manager import NotificationManager
+from proplan.models import Project, ProjectWorkerLink, TaskWorkerLink, User, UserDayOff
+
 
 class TaskManager:
     def __init__(self, notifier: NotificationManager):

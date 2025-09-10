@@ -1,8 +1,10 @@
 from fastapi import HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from ..utils.users_dependency import verify_password, create_access_token
-from ..models import User
+
+from proplan.models import User
+from proplan.utils.users_dependency import create_access_token, verify_password
+
 
 class AuthManager:
     async def authenticate(self, session: AsyncSession, email: str, password: str) -> str:

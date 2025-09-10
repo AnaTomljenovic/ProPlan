@@ -2,8 +2,7 @@ from datetime import date
 from typing import Optional
 from pydantic import BaseModel, EmailStr, ConfigDict
 
-from proplan.enums import DayOffType, ProjectStatus, TaskStatus
-from .models import Role, Availability
+from proplan.enums import Availability, DayOffType, ProjectStatus, Role, TaskStatus
 
 class Token(BaseModel):
     access_token: str

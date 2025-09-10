@@ -5,8 +5,8 @@ from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from proplan.utils.users_dependency import get_password_hash
-from .database import async_session_factory, init_db
-from .models import (
+from proplan.database import async_session_factory, init_db
+from proplan.models import (
     User, Project, Task,
     Role, ProjectStatus, TaskStatus,
     ProjectWorkerLink, TaskWorkerLink,
